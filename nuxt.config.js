@@ -3,11 +3,10 @@ module.exports = {
   ** Headers of the page
   */
   head: {
-    title: 'starter',
+    title: 'WeTube',
     meta: [
       { charset: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { hid: 'description', name: 'description', content: 'Nuxt.js project' }
+      { name: 'viewport', content: 'width=device-width, initial-scale=1' }
     ],
     link: [
       { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
@@ -21,7 +20,6 @@ module.exports = {
   ** Add axios globally
   */
   build: {
-    vendor: ['axios'],
     /*
     ** Run ESLINT on save
     */
@@ -34,10 +32,20 @@ module.exports = {
           exclude: /(node_modules)/
         })
       }
+    },
+
+    postcss: {
+      preset: {
+        features: {
+          customProperties: false
+        }
+      }
     }
   },
-  serverMiddleware: [
-    // API middleware
-    '~/api/index.js'
-  ]
+
+  modules: [
+    '@nuxtjs/bulma'
+  ],
+
+  plugins: ['~/plugins/youtube.js']
 }
