@@ -42,7 +42,8 @@ import io from 'socket.io-client'
 const timesync = require('timesync/dist/timesync.js')
 
 const serverTime = timesync.create({
-  server: '/timesync'
+  server: '/timesync',
+  interval: 30000
 })
 
 serverTime.on('change', offset => {
@@ -61,7 +62,7 @@ export default {
         url: '',
         id: '',
         opts: {
-          autoplay: 0
+          autoplay: 1
         }
       }
     }
@@ -147,10 +148,10 @@ export default {
           this.ready()
           break
         case 'play':
-          await this.player.playVideo()
           const networkDelayTime = this.getNetworkDelayTime(data.timestamp)
           const targetTime = data.currentTime + networkDelayTime
           this.player.seekTo(targetTime)
+          await this.player.playVideo()
           break
         case 'pause':
           this.player.pauseVideo()
