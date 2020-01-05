@@ -2,6 +2,7 @@
 const express = require('express')
 const path = require('path')
 const app = express()
+const timesync = require('timesync/server')
 const server = require('http').createServer(app)
 const io = require('socket.io')(server)
 const port = process.env.PORT || 3000
@@ -15,6 +16,9 @@ app.use(express.static('dist'))
 app.get('*', function (request, response) {
   response.sendFile(path.resolve('dist', 'index.html'))
 })
+
+// Time sync with server
+app.use('/timesync', timesync.requestHandler)
 
 let numUsers = {}
 

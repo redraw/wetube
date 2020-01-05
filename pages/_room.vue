@@ -13,7 +13,9 @@
       </div>
       <p>
         <span>share: <a :href="shareUrl" target="_blank">{{ shareUrl }}</a></span>
-        <span v-if="video.id" :class="['tag is-danger' ? master : 'tag']">{{ master ? 'master' : 'guest' }}</span>
+        <span v-if="video.id" :class="{'tag is-danger': master, 'tag is-grey': !master}">
+          {{ master ? 'master' : 'guest' }}
+        </span>
       </p>
       <p>
         online users: 
@@ -37,6 +39,16 @@
 <script>
 import io from 'socket.io-client'
 
+const timesync = require('timesync/dist/timesync.js')
+
+const serverTime = timesync.create({
+  server: '/timesync'
+})
+
+serverTime.on('change', offset => {
+  console.log('[server time offset]', offset)
+})
+
 export default {
   data () {
     return {
@@ -49,7 +61,7 @@ export default {
         url: '',
         id: '',
         opts: {
-          autoplay: 1
+          autoplay: 0
         }
       }
     }
@@ -88,7 +100,6 @@ export default {
     setMasterVideo () {
       this.master = true
       this.video.id = this.$youtube.getIdFromUrl(this.video.url)
-      // this.player.pauseVideo()
       this.emitViewVideo()
     },
 
@@ -101,9 +112,9 @@ export default {
     },
 
     ready () {
-      var self = this
-      // pause video after 200ms ready (set to autoplay to buffer beggining)
-      setTimeout(() => { self.player.pauseVideo() }, 200)
+      // seek and pause on video ready
+      this.player.seekTo(0, true)
+      this.player.pauseVideo()
     },
 
     playing (e) {
@@ -112,7 +123,7 @@ export default {
           room: this.room,
           action: 'play',
           currentTime: e.getCurrentTime(),
-          timestamp: new Date().getTime()
+          timestamp: serverTime.now()
         })
       }
     },
@@ -133,7 +144,6 @@ export default {
           this.master = false
           this.video.id = data.video.id
           this.video.url = data.video.url
-          this.player.pauseVideo()
           break
         case 'play':
           const networkDelayTime = this.getNetworkDelayTime(data.timestamp)
@@ -148,7 +158,7 @@ export default {
     },
 
     getNetworkDelayTime (timestamp) {
-      const delay = (new Date().getTime() - timestamp) / 1000
+      const delay = (serverTime.now() - timestamp) / 1000
       console.log('network delay', delay)
       return delay
     }
