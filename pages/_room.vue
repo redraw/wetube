@@ -136,7 +136,7 @@ export default {
           this.player.pauseVideo()
           break
         case 'play':
-          const networkDelayTime = this.getNetworkDelayTime(data.currentTime)
+          const networkDelayTime = this.getNetworkDelayTime(data.timestamp)
           const targetTime = data.currentTime + networkDelayTime
           this.player.seekTo(targetTime, true)
           this.player.playVideo()
