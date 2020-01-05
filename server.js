@@ -29,7 +29,7 @@ io.on('connection', socket => {
   })
 
   socket.on('player', data => {
-    io.broadcast.to(data.room).emit('player', data)
+    socket.broadcast.to(data.room).emit('player', data)
   })
 
   socket.on('disconnecting', reason => {
