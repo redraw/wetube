@@ -6,25 +6,30 @@
           <input class="input" type="text" v-model="video.url" placeholder="youtube url">
         </div>
         <div class="control">
-          <a class="button is-info" @click="setVideo">
+          <a class="button is-info" @click="setMasterVideo">
             add
           </a>
         </div>
       </div>
       <p>
         <span>share: <a :href="shareUrl" target="_blank">{{ shareUrl }}</a></span>
-        <span v-if="video.id && master" class="tag is-danger">you are master!</span>
+        <span v-if="video.id" :class="['tag is-danger' ? master : 'tag']">{{ master ? 'master' : 'guest' }}</span>
       </p>
-      <p>users: <span :class="{'has-text-success': count > 1 }">{{ count - 1 }}</span></p>
+      <p>
+        online users: 
+        <span :class="{'has-text-success': onlineUsers > 0 }">{{ onlineUsers }}</span>
+      </p>
     </section>
     <youtube 
       v-if="video.id"
       ref="youtube" 
       class="video"
       :video-id="video.id"
+      :player-vars="video.opts"
       fit-parent
       @playing="playing"
       @paused="paused"
+      @ready="ready"
     />
   </div>
 </template>
@@ -36,13 +41,16 @@ export default {
   data () {
     return {
       room: this.$route.params.room,
-      count: 1,
+      onlineUsers: 1,
       master: false,
       socket: null,
       shareUrl: '',
       video: {
         url: '',
-        id: ''
+        id: '',
+        opts: {
+          autoplay: 1
+        }
       }
     }
   },
@@ -59,7 +67,7 @@ export default {
 
     this.socket.on('user joined', data => {
       console.log('user joined', data)
-      this.count = data.roomCount
+      this.onlineUsers = data.roomCount - 1
       if (this.master) {
         this.emitViewVideo()
       }
@@ -67,7 +75,7 @@ export default {
 
     this.socket.on('user leaving', data => {
       console.log('user leaving', data)
-      this.count = data.roomCount
+      this.onlineUsers = data.roomCount - 1
     })
 
     this.socket.on('player', this.updatePlayer)
@@ -77,9 +85,10 @@ export default {
   },
 
   methods: {
-    setVideo () {
+    setMasterVideo () {
       this.master = true
       this.video.id = this.$youtube.getIdFromUrl(this.video.url)
+      // this.player.pauseVideo()
       this.emitViewVideo()
     },
 
@@ -91,12 +100,19 @@ export default {
       })
     },
 
+    ready () {
+      var self = this
+      // pause video after 200ms ready (set to autoplay to buffer beggining)
+      setTimeout(() => { self.player.pauseVideo() }, 200)
+    },
+
     playing (e) {
       if (this.master) {
         this.socket.emit('player', {
           room: this.room,
           action: 'play',
-          currentTime: e.getCurrentTime()
+          currentTime: e.getCurrentTime(),
+          timestamp: new Date().getTime()
         })
       }
     },
@@ -117,15 +133,24 @@ export default {
           this.master = false
           this.video.id = data.video.id
           this.video.url = data.video.url
+          this.player.pauseVideo()
           break
         case 'play':
-          this.player.seekTo(data.currentTime)
+          const networkDelayTime = this.getNetworkDelayTime(data.currentTime)
+          const targetTime = data.currentTime + networkDelayTime
+          this.player.seekTo(targetTime, true)
           this.player.playVideo()
           break
         case 'pause':
           this.player.pauseVideo()
           break
       }
+    },
+
+    getNetworkDelayTime (timestamp) {
+      const t = new Date().getTime() - timestamp
+      console.log('network delay', t)
+      return t
     }
   }
 }
