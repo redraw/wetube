@@ -54,7 +54,7 @@ export default {
   },
 
   mounted () {
-    this.socket = io(':3001')
+    this.socket = io()
     this.socket.emit('join', this.room)
 
     this.socket.on('user joined', data => {
