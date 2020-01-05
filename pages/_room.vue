@@ -137,19 +137,20 @@ export default {
       }
     },
 
-    updatePlayer (data) {
+    async updatePlayer (data) {
       console.log(data)
       switch (data.action) {
         case 'view':
           this.master = false
           this.video.id = data.video.id
           this.video.url = data.video.url
+          this.ready()
           break
         case 'play':
+          await this.player.playVideo()
           const networkDelayTime = this.getNetworkDelayTime(data.timestamp)
           const targetTime = data.currentTime + networkDelayTime
-          this.player.seekTo(targetTime, true)
-          this.player.playVideo()
+          this.player.seekTo(targetTime)
           break
         case 'pause':
           this.player.pauseVideo()
