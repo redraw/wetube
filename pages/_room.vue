@@ -148,9 +148,9 @@ export default {
     },
 
     getNetworkDelayTime (timestamp) {
-      const t = new Date().getTime() - timestamp
-      console.log('network delay', t)
-      return t
+      const delay = (new Date().getTime() - timestamp) / 1000
+      console.log('network delay', delay)
+      return delay
     }
   }
 }
