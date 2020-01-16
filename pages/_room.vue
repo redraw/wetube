@@ -6,7 +6,7 @@
           <input class="input" type="text" v-model="video.url" placeholder="youtube url">
         </div>
         <div class="control">
-          <a class="button is-info" @click="setMasterVideo">
+          <a class="button is-dark" @click="setMasterVideo">
             add
           </a>
         </div>
@@ -54,7 +54,7 @@ export default {
   data () {
     return {
       room: this.$route.params.room,
-      onlineUsers: 1,
+      onlineUsers: 0,
       master: false,
       socket: null,
       shareUrl: '',
